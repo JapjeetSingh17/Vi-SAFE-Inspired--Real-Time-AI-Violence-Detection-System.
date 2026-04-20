@@ -38,11 +38,11 @@ import torch.nn as nn
 # ─────────────────────────────────────────────────────────────
 DEVICE             = "mps" if torch.backends.mps.is_available() else "cpu"
 FRAME_BUFFER_SIZE  = 16
-VIOLENCE_THRESHOLD = 0.75
+VIOLENCE_THRESHOLD = 0.55     # lowered: catch self-hitting & mild violence
 ALERT_COOLDOWN     = 10       # seconds between alerts per camera
-YOLO_CONFIDENCE    = 0.5
-MOTION_THRESHOLD   = 0.5      # optical flow magnitude threshold
-MOTION_SUPPRESS    = 0.7      # multiply score by this when still
+YOLO_CONFIDENCE    = 0.4      # slightly lower: detect person even when partially visible
+MOTION_THRESHOLD   = 0.35     # lowered: self-hitting is moderate motion, not high
+MOTION_SUPPRESS    = 0.85     # eased: don't penalise moderate motion so aggressively
 DISPLAY_WIDTH      = 640      # per-feed display width (total = 2×)
 DISPLAY_HEIGHT     = 480
 
@@ -248,8 +248,17 @@ class CameraState:
 # ─────────────────────────────────────────────────────────────
 def main():
     print("\nLoading models...")
-    yolo      = YOLO("yolov8n.pt")
+    yolo       = YOLO("yolov8n.pt")
     classifier = QuickViolenceNet().to(DEVICE)
+
+    CLASSIFIER_WEIGHTS = "violence_classifier.pt"
+    if os.path.exists(CLASSIFIER_WEIGHTS):
+        classifier.load_state_dict(torch.load(CLASSIFIER_WEIGHTS, map_location=DEVICE))
+        print(f"✅ Loaded trained weights from '{CLASSIFIER_WEIGHTS}'")
+    else:
+        print(f"⚠️  WARNING: '{CLASSIFIER_WEIGHTS}' not found — running with random/untrained weights!")
+        print("   Run 'python train.py' first to generate trained weights.")
+
     classifier.eval()
     print("Models ready.\n")
 

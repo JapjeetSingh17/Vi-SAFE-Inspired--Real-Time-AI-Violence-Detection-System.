@@ -15,11 +15,11 @@ import os
 CAMERA_ID          = 0
 CAMERA_LOCATION    = "Library - Floor 2"
 FRAME_BUFFER_SIZE  = 16
-VIOLENCE_THRESHOLD = 0.75
+VIOLENCE_THRESHOLD = 0.55     # lowered: catch self-hitting & mild violence
 ALERT_COOLDOWN     = 10       # seconds
-YOLO_CONFIDENCE    = 0.5
-MOTION_THRESHOLD   = 0.5      # optical flow magnitude below = still
-MOTION_SUPPRESS    = 0.7      # multiply score by this when still
+YOLO_CONFIDENCE    = 0.4      # slightly lower: detect person even when partially visible
+MOTION_THRESHOLD   = 0.35     # lowered: self-hitting is moderate motion
+MOTION_SUPPRESS    = 0.85     # eased: don't suppress moderate motion aggressively
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
@@ -34,7 +34,8 @@ class QuickViolenceNet(nn.Module):
         base = mobilenet_v2(weights=MobileNet_V2_Weights.IMAGENET1K_V1)
         self.features = base.features
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.lstm = nn.LSTM(1280, 128, batch_first=True)
+        self.lstm = nn.LSTM(1280, 128, num_layers=2, batch_first=True, dropout=0.3)
+        self.dropout = nn.Dropout(0.4)
         self.fc = nn.Linear(128, 2)
 
     def forward(self, x):
@@ -43,7 +44,7 @@ class QuickViolenceNet(nn.Module):
         x = self.pool(self.features(x)).squeeze(-1).squeeze(-1)
         x = x.view(B, T, -1)
         out, _ = self.lstm(x)
-        return self.fc(out[:, -1])
+        return self.fc(self.dropout(out[:, -1]))
 
 # ── Load Models ──────────────────────────────────────
 print("Loading YOLOv8...")
@@ -51,6 +52,15 @@ yolo = YOLO('yolov8n.pt')
 
 print("Loading Violence Classifier...")
 classifier = QuickViolenceNet().to(DEVICE)
+
+CLASSIFIER_WEIGHTS = "violence_classifier.pt"
+if os.path.exists(CLASSIFIER_WEIGHTS):
+    classifier.load_state_dict(torch.load(CLASSIFIER_WEIGHTS, map_location=DEVICE))
+    print(f"✅ Loaded trained weights from '{CLASSIFIER_WEIGHTS}'")
+else:
+    print(f"⚠️  WARNING: '{CLASSIFIER_WEIGHTS}' not found — running with random/untrained weights!")
+    print("   Run 'python train.py' first to generate trained weights.")
+
 classifier.eval()
 print("Models ready.")
 
@@ -165,11 +175,15 @@ while True:
             probs  = torch.softmax(logits, dim=1)
             raw_score = probs[0][1].item()
 
-        # Task 3 — Optical flow suppression
-        # If motion is below threshold, reduce score (person is still → unlikely violence)
+        # Optical flow suppression
         if motion_mag < MOTION_THRESHOLD:
             raw_score *= MOTION_SUPPRESS
         violence_score = raw_score
+
+        # Debug: always print score so you can see what the model sees
+        suppressed_marker = " [suppressed]" if motion_mag < MOTION_THRESHOLD else ""
+        print(f"  Score: {violence_score:.3f}{suppressed_marker}  motion={motion_mag:.2f}  "
+              f"{'⚠️  ALERT' if violence_score > VIOLENCE_THRESHOLD else ''}")
 
         # Task 4 — Track how long score has been above threshold
         if violence_score > VIOLENCE_THRESHOLD:
