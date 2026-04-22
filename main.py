@@ -15,11 +15,11 @@ import os
 CAMERA_ID          = 0
 CAMERA_LOCATION    = "Library - Floor 2"
 FRAME_BUFFER_SIZE  = 16
-VIOLENCE_THRESHOLD = 0.55     # lowered: catch self-hitting & mild violence
+VIOLENCE_THRESHOLD = 0.25     # lowered to 25%: trigger more easily on live feed
 ALERT_COOLDOWN     = 10       # seconds
 YOLO_CONFIDENCE    = 0.4      # slightly lower: detect person even when partially visible
-MOTION_THRESHOLD   = 0.35     # lowered: self-hitting is moderate motion
-MOTION_SUPPRESS    = 0.85     # eased: don't suppress moderate motion aggressively
+MOTION_THRESHOLD   = 0.20     # lowered: consider smaller interactions as motion
+MOTION_SUPPRESS    = 0.95     # eased: almost no penalty for low motion
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 

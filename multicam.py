@@ -38,11 +38,11 @@ import torch.nn as nn
 # ─────────────────────────────────────────────────────────────
 DEVICE             = "mps" if torch.backends.mps.is_available() else "cpu"
 FRAME_BUFFER_SIZE  = 16
-VIOLENCE_THRESHOLD = 0.55     # lowered: catch self-hitting & mild violence
+VIOLENCE_THRESHOLD = 0.40     # lowered to 25%: trigger more easily on live feed
 ALERT_COOLDOWN     = 10       # seconds between alerts per camera
 YOLO_CONFIDENCE    = 0.4      # slightly lower: detect person even when partially visible
-MOTION_THRESHOLD   = 0.35     # lowered: self-hitting is moderate motion, not high
-MOTION_SUPPRESS    = 0.85     # eased: don't penalise moderate motion so aggressively
+MOTION_THRESHOLD   = 0.40    # lowered: consider smaller interactions as motion
+MOTION_SUPPRESS    = 0.95     # eased: almost no penalty for low motion
 DISPLAY_WIDTH      = 640      # per-feed display width (total = 2×)
 DISPLAY_HEIGHT     = 480
 
