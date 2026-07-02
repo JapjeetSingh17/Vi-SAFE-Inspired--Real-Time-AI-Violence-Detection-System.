@@ -19,4 +19,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           # Push the main branch to the Hugging Face Space repository
-          git push --force https://javellou:$HF_TOKEN@huggingface.co/spaces/javellou/visafe-api main
+          git push --force https://JapjeetSingh17:$HF_TOKEN@huggingface.co/spaces/JapjeetSingh17/visafe-api main
