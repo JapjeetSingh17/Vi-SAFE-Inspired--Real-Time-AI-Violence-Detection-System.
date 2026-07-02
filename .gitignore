@@ -8,6 +8,8 @@ venv/
 # Models and Weights
 *.pt
 *.pth
+!violence_classifier.pt
+!yolov8n.pt
 weights/
 
 # Data
