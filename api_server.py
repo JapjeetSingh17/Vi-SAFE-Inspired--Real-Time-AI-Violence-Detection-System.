@@ -1,9 +1,10 @@
+import os
+os.environ["OPENCV_AVFOUNDATION_SKIP_AUTH"] = "1"
 import cv2
 import torch
 import numpy as np
 import json
 import time
-import os
 import threading
 from collections import deque
 from datetime import datetime
