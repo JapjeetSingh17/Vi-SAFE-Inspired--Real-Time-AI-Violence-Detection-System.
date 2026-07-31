@@ -122,6 +122,26 @@ Alerts are also written as plain text to `alerts.log` for backward compatibility
 
 ---
 
+## 🌐 Deploying to Vercel & Cloud
+
+### 1. Deploy Frontend on Vercel
+1. Import this repository into **[Vercel](https://vercel.com/)**.
+2. Vercel will automatically detect the Next.js app via `vercel.json` (or set **Root Directory** to `frontend`).
+3. In your Vercel Project Settings under **Environment Variables**, add:
+   - **Key**: `NEXT_PUBLIC_API_URL`
+   - **Value**: Your backend server URL (e.g., `https://your-api.onrender.com` or `http://YOUR_SERVER_IP:8000`).
+4. Click **Deploy**.
+
+### 2. Deploy AI FastAPI Backend
+Because heavy PyTorch, OpenCV, and streaming WebSockets require long-lived execution, host `api_server.py` using Docker / Cloud Host (e.g. Render, Railway, Hugging Face Spaces, or AWS):
+```bash
+# Run backend with Docker
+docker build -t vi-safe-backend .
+docker run -p 8000:8000 vi-safe-backend
+```
+
+---
+
 ## 🛡️ License
 
 Distributed under the MIT License. See `LICENSE` for more information.
