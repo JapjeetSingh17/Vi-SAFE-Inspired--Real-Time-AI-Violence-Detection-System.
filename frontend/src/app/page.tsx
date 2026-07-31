@@ -40,7 +40,7 @@ export default function SecurityControlRoom() {
   // Settings State
   const [backendUrl, setBackendUrl] = useState(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
   const [wsConnected, setWsConnected] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
+  const [demoMode, setDemoMode] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, alerts, analytics, settings
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -876,17 +876,19 @@ export default function SecurityControlRoom() {
                     )}
                     
                     {/* Error placeholder for live stream */}
-                    <div 
-                      id="stream-error" 
-                      className="absolute inset-0 flex-col items-center justify-center bg-[#090d16]/95 text-center gap-2 z-10 hidden"
-                    >
-                      <AlertTriangle className="w-8 h-8 text-neon-red" />
-                      <span className="text-sm font-semibold text-white">LIVE STREAM OFFLINE</span>
-                      <span className="text-xs text-slate-500 font-mono px-6">
-                        Could not resolve stream route: `{backendUrl}/api/stream`<br />
-                        Start the python backend (`python api_server.py`) or switch to Demo Mode.
-                      </span>
-                    </div>
+                    {!demoMode && (
+                      <div 
+                        id="stream-error" 
+                        className="absolute inset-0 flex-col items-center justify-center bg-[#090d16]/95 text-center gap-2 z-10 hidden"
+                      >
+                        <AlertTriangle className="w-8 h-8 text-neon-red" />
+                        <span className="text-sm font-semibold text-white">LIVE STREAM OFFLINE</span>
+                        <span className="text-xs text-slate-500 font-mono px-6">
+                          Could not resolve stream route: `{backendUrl}/api/stream`<br />
+                          Start the python backend (`python api_server.py`) or switch to Demo Mode.
+                        </span>
+                      </div>
+                    )}
 
                     <div className="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded text-[9px] font-mono tracking-widest text-white uppercase">
                       SYS DEV: {metrics.usingMock ? "EMULATOR" : "MPS ACCEL"}
