@@ -38,7 +38,7 @@ interface AlertRecord {
 
 export default function SecurityControlRoom() {
   // Settings State
-  const [backendUrl, setBackendUrl] = useState("http://localhost:8000");
+  const [backendUrl, setBackendUrl] = useState(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
   const [wsConnected, setWsConnected] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -128,7 +128,8 @@ export default function SecurityControlRoom() {
     }
 
     let wsHost = backendUrl.replace("http://", "").replace("https://", "");
-    const wsUrl = `ws://${wsHost}/api/alerts/ws`;
+    const wsProtocol = backendUrl.startsWith("https") ? "wss://" : "ws://";
+    const wsUrl = `${wsProtocol}${wsHost}/api/alerts/ws`;
     
     console.log(`🔌 Attempting WebSocket connection to: ${wsUrl}`);
     
